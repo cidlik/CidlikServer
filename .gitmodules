@@ -1,0 +1,6 @@
+[submodule "SimpleHTML"]
+	path = SimpleHTML
+	url = https://github.com/cidlik/SimpleHTML
+[submodule "systeminfo"]
+	path = systeminfo
+	url = https://github.com/cidlik/systeminfo

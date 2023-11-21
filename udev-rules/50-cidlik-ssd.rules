@@ -1,0 +1,2 @@
+# Map Toshiba SSD via symlink
+KERNEL=="sda[0-9]*", ATTRS{manufacturer}=="TOSHIBA", ATTRS{serial}=="20190827004363F", SYMLINK+="ssd-toshiba" 

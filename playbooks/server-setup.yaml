@@ -1,0 +1,28 @@
+# ansible-playbook -i inventory.yaml playbooks/server-setup.yaml
+- hosts: all
+  tasks:
+    - name: Update package lists
+      become: true
+      command: apt-get update
+
+    - name: Install miscellaneous packages
+      become: true
+      apt:
+        name:
+          - vim
+        state: present
+
+    - name: Install packages for server
+      become: true
+      apt:
+        name:
+          - apache2
+        state: present
+      notify:
+        - Restart apache2
+
+  handlers:
+    - name: Restart apache2
+      ansible.builtin.service:
+        name: apache2
+        state: restarted

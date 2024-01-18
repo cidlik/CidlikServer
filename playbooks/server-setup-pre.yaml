@@ -1,0 +1,39 @@
+# ansible-playbook -i inventory.yaml playbooks/server-setup-pre.yaml
+- hosts: all
+  tasks:
+    - name: Copy local public SSH key to board
+      copy:
+        content: "{{ lookup('ansible.builtin.file', ansible_env.HOME + '/.ssh/id_rsa.pub') }}"
+        dest: /home/{{ board_username }}/.ssh/authorized_keys
+
+    - name: Disable root password for main user
+      block:
+        - name: Ensure that /etc/sudoers.d/ exists
+          become: true
+          file:
+            path: /etc/sudoers.d
+            state: directory
+
+        - name: Enable root command without password
+          become: true
+          copy:
+            dest: /etc/sudoers.d/010_pi-nopasswd
+            content: |
+              {{ board_username }} ALL=(ALL) NOPASSWD: ALL
+
+    # Source: https://stackoverflow.com/a/68404850/23048061
+    - name: Disable root login
+      become: yes
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: '^PermitRootLogin'
+        line: "PermitRootLogin no"
+        state: present
+        backup: yes
+      notify:
+        - Restart SSH
+
+  handlers:
+  - name: Restart SSH
+    become: true
+    command: systemctl restart sshd

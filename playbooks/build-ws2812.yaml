@@ -1,0 +1,37 @@
+# ansible-playbook -i inventory.yaml playbooks/build-ws2812.yaml
+- hosts: all
+  vars:
+    work_dir: /tmp/ws2812-driver
+
+  tasks:
+    - name: Remove build directory
+      file:
+        path: "{{ work_dir }}/"
+        state: absent
+
+    - name: Copy files to target
+      synchronize:
+        src: /mnt/d/Projects/CidlikServer/ws2812-driver/
+        dest: "{{ work_dir }}/"
+        rsync_opts:
+          - "--exclude=.git"
+
+    - name: Build module
+      block:
+        - name: Build
+          args:
+            chdir: "{{ work_dir }}"
+          shell: |
+            make > build.log 2>&1
+      always:
+        - name: Cat build.log
+          command: cat {{ work_dir }}/build.log
+          register: build_log
+        - name: Print build.log
+          debug:
+            msg: "{{ build_log.stdout_lines }}"
+
+    - name: Insert module
+      shell: |
+        sudo rmmod ws2812; echo 0
+        sudo insmod {{ work_dir }}/ws2812.ko
